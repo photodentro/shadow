@@ -5,10 +5,8 @@
   <meta charset="UTF-8" />
   <!-- Using this metatag users can't scale the page using pinchIn/out gestures on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-  <title>Παιχνίδι μνήμης</title> 
-  <!--REMEMEBER TO RESTORE
-  <script src="https://code.createjs.com/1.0.0/easeljs.min.js"></script>-->
-  <script src="createjs-2015.11.26.min.js"></script>  
+  <title>Μηχανισμός σκιάς</title> 
+  <script src="https://code.createjs.com/1.0.0/easeljs.min.js"></script>
   <style type="text/css">
     /* Remove margins and HTML scrollbars */
     body, html  {
@@ -35,7 +33,7 @@
   </canvas>
 <script>
   var stage;
-  var resourceNames = ["background","bar_help","bar_home", "bar_previous", "bar_next"];
+  var resourceNames = ['background.svg','bar_home.svg', 'bar_help.svg', 'bar_about.svg', 'flashlightOn.svg', 'flashlightOff.svg','toyBall.svg','toyBear.svg','toyCar.svg','toyDino.svg','toyDoll.svg','toyRobot.svg','toyTrain.svg']
   var resourcesLoaded = 0;
   var resources = [];
   var ratio = 16/9;
@@ -43,21 +41,27 @@
   var boxl;
   var boxr;
   var menubar = [];
-  var lvlText = "1";
   var level = 0; 
   var bg;
-
+  var statusText;
+  var flashLight;
+  var shadow;
+  var toys = [];
 
   function init(){
     console.clear();
     stage = new createjs.Stage("mainCanvas");
     stage.enableMouseOver();
-    
+    statusText = new createjs.Text("Φόρτωση...", "20px Arial", "white");
+  	statusText.textAlign = "center";
+  	statusText.textBaseline = "middle";
+  	stage.addChild(statusText);
+  	resize();
     // Resource preloading
     for (var i = 0; i < resourceNames.length; i++) {
 
       resources[i] = new Image();
-      resources[i].src = "resource/" + resourceNames[i] + ".svg";
+      resources[i].src = "resource/" + resourceNames[i];
       resources[i].onload = queueFileLoad;
 
     }
@@ -71,38 +75,85 @@ function imgByName(name) {
 
 function queueFileLoad(event) {
   resourcesLoaded++;
+  console.log(resourcesLoaded);
+  statusText.text = "Φόρτωση " + parseInt(100*resourcesLoaded/resourceNames.length) + " %";  
   stage.update();
-  if (resourcesLoaded == resourceNames.length)
+  if (resourcesLoaded == resourceNames.length)  	
     queueComplete(event);
 }
 
 function queueComplete(event) {
   console.log("Finished loading resources");
-  bg = new createjs.Bitmap(imgByName("background"));
+  statusText.visible = false;
+  bg = new createjs.Bitmap(imgByName("background.svg"));
   stage.addChild(bg);
-  
-  var onMenuClick = [onMenuHelp, onMenuHome, onMenuPrevious, onMenuNext];
-  for (i = 0; i < 4; i++) {
-
-    menubar[i] = new createjs.Bitmap(resources[resourceNames.indexOf('bar_help')+i]);
+  var onMenuClick = [onMenuHome, onMenuHelp, onMenuAbout, onMenuPrevious, onMenuNext];
+  for (i = 0; i < 3; i++) {
+    menubar[i] = new createjs.Bitmap(resources[resourceNames.indexOf("bar_home.svg") + i]);
     menubar[i].addEventListener("click", onMenuClick[i]);
     menubar[i].addEventListener("mouseover", function(event) {
-        // Bring the target on top in its container, mostly for the rotation animation
-        event.target.parent.setChildIndex(event.target, event.target.parent.numChildren - 1);
-        event.target.scaleX = 1.2*event.target.savedscaleX;
-        event.target.scaleY = 1.2*event.target.savedscaleY;
-        stage.update();});
+      // Bring the target on top in its container, mostly for the rotation animation
+      event.target.parent.setChildIndex(event.target, event.target.parent.numChildren - 1);
+      event.target.scaleX = 1.2*event.target.savedscaleX;
+      event.target.scaleY = 1.2*event.target.savedscaleY;
+      stage.update();
+      });
     menubar[i].addEventListener("mouseout", function(event) {
-        event.target.scaleX = event.target.savedscaleX;
-        event.target.scaleY = event.target.savedscaleY;
-        stage.update();});
+      event.target.scaleX = event.target.savedscaleX;
+      event.target.scaleY = event.target.savedscaleY;
+      stage.update();
+      });
     stage.addChild(menubar[i]);
-    
   }
-  lvlText = new createjs.Text("1", "20px Arial", "white");
-  lvlText.textAlign = "center";
-  lvlText.textBaseline = "middle";
-  stage.addChild(lvlText);
+
+  flashLight = new createjs.Bitmap(imgByName('flashlightOff.svg'));
+  flashLight.on = false;
+  flashLight.regX = flashLight.image.width/2;
+  flashLight.regY = flashLight.image.height/2;
+  flashLight.addEventListener("click",function(event){
+    if (!flashLight.moving){
+      if (flashLight.on){
+        flashLight.image = imgByName('flashlightOff.svg');
+        flashLight.on = false;
+        stage.update();
+      }
+      else{
+        flashLight.image = imgByName('flashlightOn.svg');
+        flashLight.on = true;
+        stage.update();
+      }
+    }
+    flashLight.moving = false;
+  });
+  flashLight.addEventListener("pressmove",function(event){
+    flashLight.moving = true;
+  	event.target.x = event.stageX;
+  	stage.update();
+  });
+
+  for (var i=0; i<7; i++){
+    toys[i] = new createjs.Bitmap(imgByName(resourceNames[resourceNames.indexOf('toyBall.svg')+i]));
+    toys[i].addEventListener("pressmove",function(event){
+      event.target.x = event.stageX;
+      event.target.y = event.stageY;
+      stage.update();
+    });
+    toys[i].addEventListener("click",function(event){
+      if ((event.stageX - stage.canvas.width/2<10) && (event.stageY - stage.canvas.height/2<10)){
+        event.target.x = stage.canvas.width/2;
+        event.target.y = stage.canvas.height/2;
+      }
+      else{
+        event.target.x = event.target.origX;
+        event.target.y = event.target.origY;
+      }
+      stage.update();
+    });
+  }
+  shadow = new createjs.Bitmap(imgByName('toyBall.svg'));
+  shadow.filters = [
+  new createjs.ColorFilter(0,0,0,1,0,0,0,0)];
+  stage.addChild(shadow);
 
   stage.update();
   initLevel(0);
@@ -123,36 +174,78 @@ function resize() {
     stage.canvas.width = window.innerWidth;
     stage.canvas.height = stage.canvas.width / ratio;
   }
-  var bbs = stage.canvas.height / 10;  // bar button size
 
+  if (!menubar[2]) {
+    statusText.x = stage.canvas.width / 2;
+    statusText.y = stage.canvas.height / 2;
+    statusText.font = parseInt(stage.canvas.height/10) + "px Arial";
+    return;
+  }
+  var bbs = stage.canvas.height / 10;  // bar button size
   var bbm = bbs / 5;  // bar button margin
   // TODO: local/global variables, eslint...
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < 3; i++) {
     // Leave one space for the level
-    if (i < 3)
-      j = i;
-    else
-      j = i + 1;
+    j = i;
     menubar[i].scaleX = bbs / menubar[i].image.width;
     menubar[i].scaleY = bbs / menubar[i].image.height;
     menubar[i].regX = menubar[i].image.width / 2;
     menubar[i].regY = menubar[i].image.height / 2;
     menubar[i].x = (j + 1)*bbm + bbs/2 + j*bbs;
     menubar[i].y = stage.canvas.height - bbm - bbs/2;
-    menubar[i].visible = true;
     // These copies are used to preserve the original scale on mouseover
     menubar[i].savedscaleX = menubar[i].scaleX;
     menubar[i].savedscaleY = menubar[i].scaleY;
   }
 
-  lvlText.text = level + 1;
-  lvlText.x = (3 + 1)*bbm + bbs/2 + 3*bbs;
-  lvlText.y = stage.canvas.height - bbm/2 - bbs/2;
-  lvlText.font = parseInt(2*bbs/2) + "px Arial";
+
 
   // Fill all the canvas with the background
   bg.scaleX = stage.canvas.width / bg.image.width;
   bg.scaleY = stage.canvas.height / bg.image.height;
+
+
+  flashLight.scaleX = stage.canvas.width / bg.image.width;
+  flashLight.scaleY = stage.canvas.height / bg.image.height;
+  flashLight.y = stage.canvas.height / 2.5;
+  flashLight.x = stage.canvas.width * 3 / 4;
+  stage.addChild(flashLight);
+
+  var xSoFar = 0;
+  for (var i=0; i<4; i++){
+    toys[i].regX = toys[i].image.width / 2;
+    toys[i].regY = toys[i].image.height / 2;
+    toys[i].scaleX = stage.canvas.width/2 / bg.image.width;
+    toys[i].scaleY = stage.canvas.width/2 / bg.image.width;
+    toys[i].x = stage.canvas.width / 2 + xSoFar;
+    console.log(xSoFar,toys[i].image.width*toys[i].scaleX);
+    xSoFar += toys[i].image.width*toys[i].scaleX + stage.canvas.width/40;
+
+    toys[i].y = stage.canvas.height *0.8;
+    toys[i].origX = toys[i].x;
+    toys[i].origY = toys[i].y;
+    stage.addChild(toys[i]);
+  }
+  xSoFar = stage.canvas.width / 40;
+  for (var i=4; i<7; i++){
+      toys[i].regX = toys[i].image.width / 2;
+      toys[i].regY = toys[i].image.height / 2;
+      toys[i].scaleX = stage.canvas.width/2 / bg.image.width;
+      toys[i].scaleY = stage.canvas.width/2 / bg.image.width;
+      toys[i].x = stage.canvas.width / 2 + xSoFar;
+      xSoFar += toys[i].image.width*toys[i].scaleX + stage.canvas.width/40;
+      toys[i].y = stage.canvas.height *0.9;
+      toys[i].origX = toys[i].x;
+      toys[i].origY = toys[i].y;
+      stage.addChild(toys[i]);
+    }
+
+
+  // Bring statusText in front of everything
+  statusText.textAlign = "right";
+  statusText.textBaseline = "alphabetic";
+  stage.setChildIndex(statusText, stage.numChildren - 1);
+
   stage.update();
 }
 
@@ -171,6 +264,10 @@ function onMenuPrevious(event) {
 
 function onMenuNext(event) {
   initLevel((level+1) % 5);
+}
+
+function onMenuAbout(event) {
+  window.open("credits/index_DS_II.html");
 }
 
 </script>
