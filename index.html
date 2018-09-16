@@ -63,8 +63,8 @@
         new createjs.ColorFilter(0,0,0,1,127,127,127,0)];
       shadow.cache(0,0,shadow.image.width,shadow.image.height);
       shadow.visible = flashLight.on;
-      shadow.scaleX = 1/((stage.canvas.width/bg.image.width)/2 * ((flashLight.x-stage.canvas.width/2)/50));
-      shadow.scaleY = 1/((stage.canvas.width/bg.image.width)/2 * ((flashLight.x-stage.canvas.width/2)/50));
+      shadow.scaleX = toys[currentToy].scaleX/(flashLight.x - stage.canvas.width/2)*stage.canvas.width/2;
+      shadow.scaleY = toys[currentToy].scaleY/(flashLight.x - stage.canvas.width/2)*stage.canvas.width/2;
       shadow.regX = shadow.image.width / 2;
       shadow.regY = shadow.image.height / 2;
       shadow.x = 0.2*stage.canvas.width;
@@ -86,15 +86,23 @@
       stage.addChild(lightRay);
       stage.addChild(lightSector);
       stage.addChild(shadow);
-
-      stage.update();
     }
+    else{//no toy
+      if (lightRay){
+        lightRay.graphics.clear();
+        lightSector.graphics.clear();
+      }
+      if (shadow){
+        shadow.visible = false;
+      }
   }
-
+  stage.update();
+}
   function init(){
     console.clear();
     stage = new createjs.Stage("mainCanvas");
     stage.enableMouseOver();
+    createjs.Touch.enable(stage);//mobile
     statusText = new createjs.Text("Φόρτωση...", "20px Arial", "white");
   	statusText.textAlign = "center";
   	statusText.textBaseline = "middle";
@@ -164,10 +172,10 @@ function queueComplete(event) {
         flashLight.image = imgByName('flashlightOn.svg');
         flashLight.on = true;
         if (currentToy>=0){
-        castShadow(toys[currentToy].image);}
-        stage.update();
-      }
-    }
+          castShadow(toys[currentToy].image);}
+          stage.update();
+        }
+      } 
     flashLight.moving = false;
     castShadow();
   });
@@ -190,23 +198,30 @@ function queueComplete(event) {
     toys[i].addEventListener("click",function(event){
       var toyInd = toys.indexOf(event.target);
       if ((event.stageX - stage.canvas.width/2<10) && (event.stageY - stage.canvas.height/2<10)){
-        event.target.x = stage.canvas.width/2;
-        event.target.y = stage.canvas.height/2;
-        if ((currentToy>=0)&&(toyInd != currentToy)){//shadow toy is replaced
-          toys[currentToy].x = toys[currentToy].origX;
-          toys[currentToy].y = toys[currentToy].origY;
+        if (currentToy == -1){
+          event.target.x = stage.canvas.width/2;
+          event.target.y = stage.canvas.height/2;
+          currentToy = toyInd;
+          ropeEnd.y = toys[currentToy].y-toys[currentToy].regY*toys[currentToy].scaleY*0.8;
+          castShadow();
         }
-        currentToy = toyInd;
-        ropeEnd.y = toys[currentToy].y-toys[currentToy].regY*toys[currentToy].scaleY*0.8;
-        castShadow();
+        else{//if there is a toy you cannot replace it
+          event.target.x = event.target.origX;
+          event.target.y = event.target.origY;
+        }
       }
-      else{
-        event.target.x = event.target.origX;
-        event.target.y = event.target.origY;
+      else{//if you are not near the center return to original place
+          event.target.x = event.target.origX;
+          event.target.y = event.target.origY;
+          if (toyInd == currentToy){//if the current toy is moved back to the floor   
+            currentToy = -1;
+            ropeEnd.y = stage.canvas.height/2;
+            castShadow();
+          }
       }
       stage.update();
-    });
-  }
+  });
+  }//for each toy
   ropeEnd = new createjs.Bitmap(imgByName('ropeEnd.svg'));
   stage.addChild(ropeEnd);
   stage.update();
@@ -284,7 +299,13 @@ function resize() {
     toys[i].y = stage.canvas.height *0.8;
     toys[i].origX = toys[i].x;
     toys[i].origY = toys[i].y;
+    if (i==currentToy){
+      toys[i].x = stage.canvas.width/2;
+      toys[i].y = stage.canvas.height/2;
+      castShadow();
+    }
     stage.addChild(toys[i]);
+
   }
   xSoFar = stage.canvas.width / 40;
   for (var i=4; i<7; i++){
@@ -298,8 +319,15 @@ function resize() {
       toys[i].origX = toys[i].x;
       toys[i].origY = toys[i].y;
       stage.addChild(toys[i]);
+      if (i==currentToy){
+          toys[i].x = stage.canvas.width/2;
+          toys[i].y = stage.canvas.height/2;
+          castShadow();
+      }
+      stage.update();
     }
-  castShadow();
+
+    castShadow();
   // Bring statusText in front of everything
   statusText.textAlign = "right";
   statusText.textBaseline = "alphabetic";
