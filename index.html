@@ -33,7 +33,7 @@
   </canvas>
 <script>
   var stage;
-  var resourceNames = ['background.svg','bar_home.svg', 'bar_help.svg', 'bar_about.svg', 'flashlightOn.svg', 'flashlightOff.svg','toyBall.svg','toyBear.svg','toyCar.svg','toyDino.svg','toyDoll.svg','toyRobot.svg','toyTrain.svg']
+  var resourceNames = ['background.svg','bar_home.svg', 'bar_help.svg', 'bar_about.svg', 'flashlightOn.svg', 'flashlightOff.svg','ropeEnd.svg','toyBall.svg','toyBear.svg','toyCar.svg','toyDino.svg','toyDoll.svg','toyRobot.svg','toyTrain.svg']
   var resourcesLoaded = 0;
   var resources = [];
   var ratio = 16/9;
@@ -47,6 +47,49 @@
   var flashLight;
   var shadow;
   var toys = [];
+  var currentToy = -1;
+  var lightRay;
+  var ropeEnd;
+
+
+  function castShadow(){
+    if (shadow){//erase the old shadow
+      shadow.visible = false;
+    }
+    if (currentToy>=0){//if there is a toy in the middle cast its shadow
+      
+      shadow = new createjs.Bitmap(toys[currentToy].image);
+      shadow.filters = [
+        new createjs.ColorFilter(0,0,0,1,127,127,127,0)];
+      shadow.cache(0,0,shadow.image.width,shadow.image.height);
+      shadow.visible = flashLight.on;
+      shadow.scaleX = 1/((stage.canvas.width/bg.image.width)/2 * ((flashLight.x-stage.canvas.width/2)/50));
+      shadow.scaleY = 1/((stage.canvas.width/bg.image.width)/2 * ((flashLight.x-stage.canvas.width/2)/50));
+      shadow.regX = shadow.image.width / 2;
+      shadow.regY = shadow.image.height / 2;
+      shadow.x = 0.2*stage.canvas.width;
+      shadow.y = 0.5*stage.canvas.height;
+      
+      if (lightRay){  
+        lightRay.graphics.clear();
+        lightSector.graphics.clear();
+      }
+      else{
+        lightRay = new createjs.Shape();
+        lightSector = new createjs.Shape();
+      }
+      lightRay.graphics.setStrokeStyle(stage.canvas.width/100).beginFill('#F0E68C77').moveTo(flashLight.x-flashLight.regX*flashLight.scaleX,flashLight.y-flashLight.regY*flashLight.scaleY).lineTo(shadow.x,shadow.y-shadow.regY*shadow.scaleY*1.2).
+      lineTo(shadow.x,shadow.y+shadow.regY*shadow.scaleY*1.2).lineTo(flashLight.x-flashLight.regX*flashLight.scaleX,flashLight.y+flashLight.regY*flashLight.scaleY).lineTo(flashLight.x-flashLight.regX*flashLight.scaleX,flashLight.y-flashLight.regY*flashLight.scaleY);
+      lightSector.graphics.setStrokeStyle(stage.canvas.width/100).beginFill('#F0E68C77').arc(shadow.x,shadow.y,shadow.regY*shadow.scaleY*1.2,Math.PI/2,3*Math.PI/2).lineTo(shadow.x,shadow.y).endStroke();
+      lightRay.visible = flashLight.on;
+      lightSector.visible = flashLight.on;
+      stage.addChild(lightRay);
+      stage.addChild(lightSector);
+      stage.addChild(shadow);
+
+      stage.update();
+    }
+  }
 
   function init(){
     console.clear();
@@ -61,6 +104,7 @@
     for (var i = 0; i < resourceNames.length; i++) {
 
       resources[i] = new Image();
+      resources[i].crossOrigin = "Anonymous";
       resources[i].src = "resource/" + resourceNames[i];
       resources[i].onload = queueFileLoad;
 
@@ -75,7 +119,6 @@ function imgByName(name) {
 
 function queueFileLoad(event) {
   resourcesLoaded++;
-  console.log(resourcesLoaded);
   statusText.text = "Φόρτωση " + parseInt(100*resourcesLoaded/resourceNames.length) + " %";  
   stage.update();
   if (resourcesLoaded == resourceNames.length)  	
@@ -120,15 +163,21 @@ function queueComplete(event) {
       else{
         flashLight.image = imgByName('flashlightOn.svg');
         flashLight.on = true;
+        if (currentToy>=0){
+        castShadow(toys[currentToy].image);}
         stage.update();
       }
     }
     flashLight.moving = false;
+    castShadow();
   });
   flashLight.addEventListener("pressmove",function(event){
     flashLight.moving = true;
-  	event.target.x = event.stageX;
+    if (event.stageX>stage.canvas.width/1.6){
+  	 event.target.x = event.stageX;
+    }
   	stage.update();
+    castShadow();
   });
 
   for (var i=0; i<7; i++){
@@ -139,9 +188,17 @@ function queueComplete(event) {
       stage.update();
     });
     toys[i].addEventListener("click",function(event){
+      var toyInd = toys.indexOf(event.target);
       if ((event.stageX - stage.canvas.width/2<10) && (event.stageY - stage.canvas.height/2<10)){
         event.target.x = stage.canvas.width/2;
         event.target.y = stage.canvas.height/2;
+        if ((currentToy>=0)&&(toyInd != currentToy)){//shadow toy is replaced
+          toys[currentToy].x = toys[currentToy].origX;
+          toys[currentToy].y = toys[currentToy].origY;
+        }
+        currentToy = toyInd;
+        ropeEnd.y = toys[currentToy].y-toys[currentToy].regY*toys[currentToy].scaleY*0.8;
+        castShadow();
       }
       else{
         event.target.x = event.target.origX;
@@ -150,11 +207,8 @@ function queueComplete(event) {
       stage.update();
     });
   }
-  shadow = new createjs.Bitmap(imgByName('toyBall.svg'));
-  shadow.filters = [
-  new createjs.ColorFilter(0,0,0,1,0,0,0,0)];
-  stage.addChild(shadow);
-
+  ropeEnd = new createjs.Bitmap(imgByName('ropeEnd.svg'));
+  stage.addChild(ropeEnd);
   stage.update();
   initLevel(0);
   resize();
@@ -204,10 +258,17 @@ function resize() {
   bg.scaleX = stage.canvas.width / bg.image.width;
   bg.scaleY = stage.canvas.height / bg.image.height;
 
+  ropeEnd.scaleX = stage.canvas.width / bg.image.width;
+  ropeEnd.scaleY = stage.canvas.height / bg.image.height;
+  ropeEnd.regX = ropeEnd.image.width/2;
+  ropeEnd.regY = ropeEnd.image.height;
+  ropeEnd.x = stage.canvas.width / 2;
+  ropeEnd.y = stage.canvas.height / 1.95;
+  stage.addChild(ropeEnd);
 
   flashLight.scaleX = stage.canvas.width / bg.image.width;
   flashLight.scaleY = stage.canvas.height / bg.image.height;
-  flashLight.y = stage.canvas.height / 2.5;
+  flashLight.y = stage.canvas.height / 2;
   flashLight.x = stage.canvas.width * 3 / 4;
   stage.addChild(flashLight);
 
@@ -215,10 +276,9 @@ function resize() {
   for (var i=0; i<4; i++){
     toys[i].regX = toys[i].image.width / 2;
     toys[i].regY = toys[i].image.height / 2;
-    toys[i].scaleX = stage.canvas.width/2 / bg.image.width;
-    toys[i].scaleY = stage.canvas.width/2 / bg.image.width;
+    toys[i].scaleX = stage.canvas.width/2.5 / bg.image.width;
+    toys[i].scaleY = stage.canvas.width/2.5 / bg.image.width;
     toys[i].x = stage.canvas.width / 2 + xSoFar;
-    console.log(xSoFar,toys[i].image.width*toys[i].scaleX);
     xSoFar += toys[i].image.width*toys[i].scaleX + stage.canvas.width/40;
 
     toys[i].y = stage.canvas.height *0.8;
@@ -239,8 +299,7 @@ function resize() {
       toys[i].origY = toys[i].y;
       stage.addChild(toys[i]);
     }
-
-
+  castShadow();
   // Bring statusText in front of everything
   statusText.textAlign = "right";
   statusText.textBaseline = "alphabetic";

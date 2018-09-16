@@ -9,26 +9,26 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="55.585571mm"
-   height="37.083668mm"
-   viewBox="0 0 55.585572 37.083668"
+   width="47.589596mm"
+   height="17.394215mm"
+   viewBox="0 0 47.589596 17.394215"
    version="1.1"
-   id="svg1964"
+   id="svg1820"
    inkscape:version="0.92.3 (2405546, 2018-03-11)"
    sodipodi:docname="flashlightOff.svg">
   <defs
-     id="defs1958">
+     id="defs1814">
     <clipPath
        clipPathUnits="userSpaceOnUse"
-       id="clipPath1615">
+       id="clipPath1471">
       <rect
          style="fill:#bdbea7;fill-opacity:1;stroke:none;stroke-width:14.17322922;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-         id="rect1617"
-         width="104.2683"
-         height="157.00169"
-         x="441.04291"
-         y="-612.42639"
-         transform="scale(1,-1)" />
+         id="rect1473"
+         width="134.89964"
+         height="49.306435"
+         x="-600.21844"
+         y="473.56244"
+         transform="rotate(-89.688966)" />
     </clipPath>
     <clipPath
        clipPathUnits="userSpaceOnUse"
@@ -47,8 +47,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8"
-     inkscape:cx="94.941082"
-     inkscape:cy="44.616582"
+     inkscape:cx="-0.73617891"
+     inkscape:cy="10.119331"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -62,14 +62,14 @@
      inkscape:window-y="-8"
      inkscape:window-maximized="1" />
   <metadata
-     id="metadata1961">
+     id="metadata1817">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -77,11 +77,11 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-80.308403,-21.43435)">
+     transform="translate(-26.098061,-68.32075)">
     <g
-       transform="matrix(0.00191507,0.35277257,-0.35277257,0.00191507,295.51101,-135.02566)"
+       transform="matrix(0.00191507,0.35150268,-0.35277258,0.00190818,236.25428,-98.289931)"
        id="g14"
-       clip-path="url(#clipPath1615)">
+       clip-path="url(#clipPath1471)">
       <g
          id="g16"
          clip-path="url(#clipPath20)">
