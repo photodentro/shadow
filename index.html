@@ -49,6 +49,7 @@
   var toys = [];
   var currentToy = -1;
   var lightRay;
+  var lightSector;
   var ropeEnd;
 
 
@@ -69,7 +70,17 @@
       shadow.regY = shadow.image.height / 2;
       shadow.x = 0.2*stage.canvas.width;
       shadow.y = 0.5*stage.canvas.height;
-      
+      stage.addChild(shadow);
+    }
+    else{//no toy
+      if (shadow){
+        shadow.visible = false;
+      }
+  }
+  stage.update();
+}
+
+  function drawLightRay(){
       if (lightRay){  
         lightRay.graphics.clear();
         lightSector.graphics.clear();
@@ -78,26 +89,20 @@
         lightRay = new createjs.Shape();
         lightSector = new createjs.Shape();
       }
-      lightRay.graphics.setStrokeStyle(stage.canvas.width/100).beginFill('#F0E68C77').moveTo(flashLight.x-flashLight.regX*flashLight.scaleX,flashLight.y-flashLight.regY*flashLight.scaleY).lineTo(shadow.x,shadow.y-shadow.regY*shadow.scaleY*1.2).
-      lineTo(shadow.x,shadow.y+shadow.regY*shadow.scaleY*1.2).lineTo(flashLight.x-flashLight.regX*flashLight.scaleX,flashLight.y+flashLight.regY*flashLight.scaleY).lineTo(flashLight.x-flashLight.regX*flashLight.scaleX,flashLight.y-flashLight.regY*flashLight.scaleY);
-      lightSector.graphics.setStrokeStyle(stage.canvas.width/100).beginFill('#F0E68C77').arc(shadow.x,shadow.y,shadow.regY*shadow.scaleY*1.2,Math.PI/2,3*Math.PI/2).lineTo(shadow.x,shadow.y).endStroke();
+      
+      shadowX = 0.2*stage.canvas.width;
+      shadowY = 0.5*stage.canvas.height;
+      var onScreenUpY   = stage.canvas.height/2+(flashLight.x-shadowX)*Math.tan(Math.PI/12);
+      var onScreenDownY = stage.canvas.height/2-(flashLight.x-shadowX)*Math.tan(Math.PI/12);
+      lightRay.graphics.setStrokeStyle(stage.canvas.width/100).beginFill('#F0E68C77').moveTo(flashLight.x-flashLight.regX*flashLight.scaleX,flashLight.y-flashLight.regY*flashLight.scaleY).lineTo(shadowX,onScreenDownY).
+      lineTo(shadowX,onScreenUpY).lineTo(flashLight.x-flashLight.regX*flashLight.scaleX,flashLight.y+flashLight.regY*flashLight.scaleY).lineTo(flashLight.x-flashLight.regX*flashLight.scaleX,flashLight.y-flashLight.regY*flashLight.scaleY);
+      lightSector.graphics.setStrokeStyle(stage.canvas.width/100).beginFill('#F0E68C77').arc(shadowX,shadowY,onScreenUpY-shadowY,Math.PI/2,Math.PI*3/2).lineTo(shadowX,shadowY).endStroke();
       lightRay.visible = flashLight.on;
       lightSector.visible = flashLight.on;
       stage.addChild(lightRay);
       stage.addChild(lightSector);
-      stage.addChild(shadow);
-    }
-    else{//no toy
-      if (lightRay){
-        lightRay.graphics.clear();
-        lightSector.graphics.clear();
-      }
-      if (shadow){
-        shadow.visible = false;
-      }
+      stage.update();   
   }
-  stage.update();
-}
   function init(){
     console.clear();
     stage = new createjs.Stage("mainCanvas");
@@ -166,11 +171,13 @@ function queueComplete(event) {
       if (flashLight.on){
         flashLight.image = imgByName('flashlightOff.svg');
         flashLight.on = false;
+        drawLightRay();
         stage.update();
       }
       else{
         flashLight.image = imgByName('flashlightOn.svg');
         flashLight.on = true;
+        drawLightRay();
         if (currentToy>=0){
           castShadow(toys[currentToy].image);}
           stage.update();
@@ -181,8 +188,9 @@ function queueComplete(event) {
   });
   flashLight.addEventListener("pressmove",function(event){
     flashLight.moving = true;
-    if (event.stageX>stage.canvas.width/1.6){
+    if (event.stageX>stage.canvas.width/1.4){
   	 event.target.x = event.stageX;
+     drawLightRay();
     }
   	stage.update();
     castShadow();
@@ -284,7 +292,7 @@ function resize() {
   flashLight.scaleX = stage.canvas.width / bg.image.width;
   flashLight.scaleY = stage.canvas.height / bg.image.height;
   flashLight.y = stage.canvas.height / 2;
-  flashLight.x = stage.canvas.width * 3 / 4;
+  flashLight.x = stage.canvas.width * 4 / 5;
   stage.addChild(flashLight);
 
   var xSoFar = 0;
