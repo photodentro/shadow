@@ -223,6 +223,7 @@ function queueComplete(event) {
           toys[currentToy].x = toys[currentToy].origX;
           toys[currentToy].y = toys[currentToy].origY;
           currentToy = toyInd;
+          ropeEnd.y = toys[currentToy].y-toys[currentToy].regY*toys[currentToy].scaleY*0.8;
           castShadow();
         }
       }
