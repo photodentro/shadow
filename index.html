@@ -198,24 +198,32 @@ function queueComplete(event) {
 
   for (var i=0; i<7; i++){
     toys[i] = new createjs.Bitmap(imgByName(resourceNames[resourceNames.indexOf('toyBall.svg')+i]));
-    toys[i].addEventListener("pressmove",function(event){
+    toys[i].on("pressmove",function(event){
       event.target.x = event.stageX;
       event.target.y = event.stageY;
       stage.update();
     });
-    toys[i].addEventListener("click",function(event){
+
+    toys[i].on("pressup",function(event){
       var toyInd = toys.indexOf(event.target);
+      console.log(currentToy,toyInd);
+      console.log("inhere");
       if ((event.stageX - stage.canvas.width/2<10) && (event.stageY - stage.canvas.height/2<10)){
-        if (currentToy == -1){
+        if ((currentToy == -1) || (currentToy == toyInd)){
           event.target.x = stage.canvas.width/2;
           event.target.y = stage.canvas.height/2;
           currentToy = toyInd;
           ropeEnd.y = toys[currentToy].y-toys[currentToy].regY*toys[currentToy].scaleY*0.8;
           castShadow();
         }
-        else{//if there is a toy you cannot replace it
-          event.target.x = event.target.origX;
-          event.target.y = event.target.origY;
+        else{//if another toy is in replace it
+          event.target.x = stage.canvas.width/2;
+          event.target.y = stage.canvas.height/2;
+          //remove the previous current toy
+          toys[currentToy].x = toys[currentToy].origX;
+          toys[currentToy].y = toys[currentToy].origY;
+          currentToy = toyInd;
+          castShadow();
         }
       }
       else{//if you are not near the center return to original place
@@ -229,6 +237,7 @@ function queueComplete(event) {
       }
       stage.update();
   });
+
   }//for each toy
   ropeEnd = new createjs.Bitmap(imgByName('ropeEnd.svg'));
   stage.addChild(ropeEnd);
