@@ -208,7 +208,7 @@ function queueComplete(event) {
       var toyInd = toys.indexOf(event.target);
       console.log(currentToy,toyInd);
       console.log("inhere");
-      if ((event.stageX - stage.canvas.width/2<10) && (event.stageY - stage.canvas.height/2<10)){
+      if ((event.stageX - stage.canvas.width/2<stage.canvas.width/20) && (event.stageY - stage.canvas.height/2<stage.canvas.height/15)){
         if ((currentToy == -1) || (currentToy == toyInd)){
           event.target.x = stage.canvas.width/2;
           event.target.y = stage.canvas.height/2;
