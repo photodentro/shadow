@@ -6,7 +6,7 @@
   <!-- Using this metatag users can't scale the page using pinchIn/out gestures on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <title>Μηχανισμός σκιάς</title> 
-  <script src="https://code.createjs.com/1.0.0/easeljs.min.js"></script>
+  <script src="easeljs.min.js"></script>
   <style type="text/css">
     /* Remove margins and HTML scrollbars */
     body, html  {
@@ -166,8 +166,8 @@ function queueComplete(event) {
   flashLight.on = false;
   flashLight.regX = flashLight.image.width/2;
   flashLight.regY = flashLight.image.height/2;
-  flashLight.addEventListener("click",function(event){
-    if (!flashLight.moving){
+  function flashLightClick(event){
+    if (!flashLight.moving || (Math.abs(flashLight.moveX - event.target.x)<stage.canvas.width/100)){
       if (flashLight.on){
         flashLight.image = imgByName('flashlightOff.svg');
         flashLight.on = false;
@@ -185,8 +185,10 @@ function queueComplete(event) {
       } 
     flashLight.moving = false;
     castShadow();
-  });
-  flashLight.addEventListener("pressmove",function(event){
+  }
+
+  flashLight.addEventListener("click",flashLightClick);
+  function flashlightPressmove(event){
     flashLight.moving = true;
     if (event.stageX>stage.canvas.width/1.4){
   	 event.target.x = event.stageX;
@@ -194,7 +196,11 @@ function queueComplete(event) {
     }
   	stage.update();
     castShadow();
+  }
+  flashLight.addEventListener("mousedown",function(event){
+  	flashLight.moveX = event.target.x;
   });
+  flashLight.addEventListener("pressmove",flashlightPressmove);
 
   for (var i=0; i<7; i++){
     toys[i] = new createjs.Bitmap(imgByName(resourceNames[resourceNames.indexOf('toyBall.svg')+i]));
@@ -346,6 +352,7 @@ function resize() {
     }
 
     castShadow();
+    drawLightRay();
   // Bring statusText in front of everything
   statusText.textAlign = "right";
   statusText.textBaseline = "alphabetic";
@@ -356,7 +363,7 @@ function resize() {
 
 
 function onMenuHelp(event) {
-  alert("Επιλέξτε εικόνες από το κάτω κουτί και βάλτε τις στο δεξί κουτί έτσι ώστε να ταιριάζουν με το αριστερό κουτί.");
+  alert("Κρεμάστε στο σκοινί όποιο παιχνίδι θέλετε και πειραματιστείτε με τον φακό.");
 }
 
 function onMenuHome(event) {
