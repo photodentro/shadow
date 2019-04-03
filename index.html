@@ -31,6 +31,7 @@
   <canvas id="mainCanvas" width="320" height="180">
     Your browser doesn't support HTML5!
   </canvas>
+  <audio id="audiohelp"><source src="resource/help.mp3" type="audio/mp3"></audio>
 <script>
   var stage;
   var resourceNames = ['background.svg','bar_home.svg', 'bar_help.svg', 'bar_about.svg', 'flashlightOn.svg', 'flashlightOff.svg','ropeEnd.svg','toyBall.svg','toyBear.svg','toyCar.svg','toyDino.svg','toyDoll.svg','toyRobot.svg','toyTrain.svg']
@@ -51,7 +52,49 @@
   var lightRay;
   var lightSector;
   var ropeEnd;
+  var theHelpBox;
+  var theHelpText;
 
+  function theHelp_hide(){
+      theHelpBox.visible = false;
+      theHelpText.visible = false;
+      stage.update();
+      document.getElementById('audiohelp').pause();
+  }
+  function theHelp(msg){
+    this.create = function(){
+      theHelpBox = new createjs.Shape();
+      theHelpBox.on("click",function(){
+        theHelp_hide();
+      });
+      theHelpText = new createjs.Text();
+      theHelpText.text = msg;
+    }
+    this.resize = function(){
+        theHelpBox.graphics.clear();
+        theHelpBox.x = 0.25*stage.canvas.width;
+        theHelpBox.y = 0.25*stage.canvas.height;
+        theHelpBox.graphics.beginFill('#ffffff').setStrokeStyle(2).beginStroke('#000000').drawRoundRect(0,0,stage.canvas.width/2,stage.canvas.height/2,stage.canvas.height/20);
+        theHelpBox.shadow = new createjs.Shadow("#000000", 5, 5, 10);
+        stage.addChild(theHelpBox);
+        theHelpText.x = theHelpBox.x + stage.canvas.width/20;
+        theHelpText.y = theHelpBox.y + stage.canvas.width/20;
+        theHelpText.font = parseInt(stage.canvas.height/18) + "px serif";
+        theHelpText.lineWidth = stage.canvas.width/2.3;
+        stage.addChild(theHelpText);
+    }
+    this.show = function(){
+      stage.addChild(theHelpBox);
+      stage.addChild(theHelpText);
+      theHelpBox.visible = true;
+      theHelpText.visible = true;
+      document.getElementById('audiohelp').currentTime = 0;
+      document.getElementById('audiohelp').play();
+      stage.update();
+
+    }
+    this.hide = theHelp_hide;
+  }
 
   function castShadow(){
     if (shadow){//erase the old shadow
@@ -248,6 +291,9 @@ function queueComplete(event) {
   }//for each toy
   ropeEnd = new createjs.Bitmap(imgByName('ropeEnd.svg'));
   stage.addChild(ropeEnd);
+  theHelp = new theHelp("Διάλεξε οποίο παιχνίδι θέλεις και τοποθέτησε το στο σχοινί. \nΣτη συνέχεια προσπάθησε να δημιουργήσεις τη σκιά του, αφού πειραματιστείς με το φακό.")
+  theHelp.create();
+  theHelp.hide();
   stage.update();
   initLevel(0);
   resize();
@@ -357,13 +403,13 @@ function resize() {
   statusText.textAlign = "right";
   statusText.textBaseline = "alphabetic";
   stage.setChildIndex(statusText, stage.numChildren - 1);
-
+  theHelp.resize();
   stage.update();
 }
 
 
 function onMenuHelp(event) {
-  alert("Κρεμάστε στο σκοινί όποιο παιχνίδι θέλετε και πειραματιστείτε με τον φακό.");
+  theHelp.show();
 }
 
 function onMenuHome(event) {
